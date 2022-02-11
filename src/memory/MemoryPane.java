@@ -25,11 +25,13 @@ import javafx.stage.Stage;
  */
 public class MemoryPane extends BorderPane {
     
+    private HBox infoBox;
     private Label infoLabel;
     private MemoryGridPane memoryGridPane;
     private Game game;
     private HBox[] tabPlayersBox; // tableau contenant les playerBox
     private HBox againBox;
+    private HBox changeBox;
             
     public MemoryPane(Game game) {
         
@@ -38,7 +40,9 @@ public class MemoryPane extends BorderPane {
         this.setPadding(new Insets(20, 20, 20, 20)); 
         
         // création de la box d'informations du jeu
+        this.infoBox = new HBox(10);
         this.infoLabel = new Label("C'est le tour de " + this.game.getCurrentPlayer().getName());
+        this.infoBox.getChildren().add(this.infoLabel);
         
         // création de l'affichage de la grille de jeu
         this.memoryGridPane = new MemoryGridPane(this.game.getGameGrid());
@@ -52,7 +56,10 @@ public class MemoryPane extends BorderPane {
         // création du bouton Rejouer
         this.createAgainBox(this.game.getPlayersList(), this.game.getNbPairsCards());
         
-        this.setTop(this.infoLabel);
+        // création du bouton Echanger des cartes
+        this.createChangeBox(this.game.getLowerScorePlayer());
+       
+        this.setTop(this.infoBox);
         this.setCenter(this.memoryGridPane);
         this.setRight(playersBox);
         this.setBottom(btnsBox);
@@ -113,7 +120,7 @@ public class MemoryPane extends BorderPane {
         });
         
         // boutons dans une HBox
-        HBox btnsBox = new HBox();
+        HBox btnsBox = new HBox(10);
         btnsBox.getChildren().addAll(nextBtn, quitBtn);
         
         return btnsBox;
@@ -137,6 +144,20 @@ public class MemoryPane extends BorderPane {
         });
         
         this.againBox.getChildren().add(againBtn);
+    }
+    
+    private void createChangeBox(Player lowerScorePlayer) {
+        this.changeBox = new HBox();
+        Button changeBtn = new Button("Echanger 2 cartes");
+        changeBtn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                // on clique sur 2 cartes et elles sont échangées
+                System.out.println("on échange les cartes");
+            }
+        });
+        
+        this.changeBox.getChildren().add(changeBtn);
     }
     
     private VBox createPlayersBox(ArrayList<Player> playersList) {
@@ -207,6 +228,22 @@ public class MemoryPane extends BorderPane {
 
     public void setAgainBox(HBox againBox) {
         this.againBox = againBox;
+    }
+
+    public HBox getInfoBox() {
+        return infoBox;
+    }
+
+    public void setInfoBox(HBox infoBox) {
+        this.infoBox = infoBox;
+    }
+
+    public HBox getChangeBox() {
+        return changeBox;
+    }
+
+    public void setChangeBox(HBox changeBox) {
+        this.changeBox = changeBox;
     }
     
     

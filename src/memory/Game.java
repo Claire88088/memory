@@ -72,114 +72,105 @@ public class Game {
         // on remet à zéro le jeu
         this.resetGame();
         
-        // on les retourne
+        // on retourne les cartes
         Card[][] cardsGrid = this.gameGrid.getCardsGrid();        
         for (int row = 0; row < this.gameGrid.getNbRows(); row++){
             for (int col = 0; col < this.gameGrid.getNbCols(); col++) {
                 Card card = cardsGrid[row][col];
               
-                // on vérifie qu'il y a bien une carte
-                if (card != null) {
+                // on vérifie qu'il y a bien une carte et qu'elle n'a pas déjà été trouvée
+                if (card != null && !card.isFind()) {
                     card.setOnMouseClicked(event -> {
                         
                         // on vérifie que le joueur peut encore jouer
                         if (this.currentPlayer.isPlaying()) {
-                        
-                            // on vérifie que la carte n'a pas été déjà été trouvée
-                            if (!card.isFind()){ 
-                                
-                                // on récupère les "numbers" du joueur courant et du joueur suivant pour pouvoir changer le tour des joueurs
-                                int currentPlayerNumber = currentPlayer.getNumber();
+                            // si le joueur a le plus petit score : il peut choisir d'échanger des cartes
+                            if (this.currentPlayer == this.lowerScorePlayer) {
+                                System.out.println(""+this.memoryPane.getInfoBox().getChildren());//.addAll(this.memoryPane.getAgainBox());
+                            }
+                            
+                            // on récupère les "numbers" du joueur courant et du joueur suivant pour pouvoir changer le tour des joueurs
+                            int currentPlayerNumber = currentPlayer.getNumber();
 
-                                int nextPlayerNumber;
-                                int listSize = this.playersList.size();
-                                if (currentPlayerNumber == (listSize-1)) {   
-                                    nextPlayerNumber = 0;
+                            int nextPlayerNumber;
+                            int listSize = this.playersList.size();
+                            if (currentPlayerNumber == (listSize-1)) {   
+                                nextPlayerNumber = 0;
+                            } else {
+                                nextPlayerNumber = currentPlayerNumber + 1;
+                            }                          
+
+                            // le joueur peut retourner 2 cartes maximum
+                            if (this.nbCardsUp < 2) { // ---------TODO : utiliser cardsUpList.length à la place de nbCardsUp----------------
+                                this.nbCardsUp++;                            
+                                card.switchIsUp();
+
+                                // on ajoute la carte retournée à la liste
+                                this.cardsUpList.add(card);
+
+                            } else { // --------TODO : gérer le cas où un seul joueur------------                               
+                                this.currentPlayer.switchIsPlaying();                                
+
+                                Card upCard1 = this.cardsUpList.get(0);
+                                Card upCard2 = this.cardsUpList.get(1);
+
+                                // on remet à zéro la liste de cartes retournées
+                                this.cardsUpList.clear();
+                                this.nbCardsUp = 0;                            
+
+                                // si les 2 cartes retournées sont les mêmes
+                                if (upCard1.getNumber() == upCard2.getNumber()) {                                                              
+                                    // le joueur gagne 1 point
+                                    this.currentPlayer.getPoint();
+                                    ((Label) this.memoryPane.getTabPlayersBox()[currentPlayerNumber].getChildren().get(2)).setText(this.currentPlayer.getScoreToString()); // il faut forcer le type !
+
+                                    // on met à jour le joueur avec le score le plus bas
+                                    this.updateLowerScorePlayer();
+
+                                    // les cartes ne sont plus "en jeu"
+                                    this.nbPairsInGame--;
+                                    upCard1.removeFromGame();
+                                    upCard2.removeFromGame();
+
+                                    this.gameGrid.removeCardOfGrid(upCard1);
+                                    this.gameGrid.removeCardOfGrid(upCard2);
+
+                                    // on change l'affichage
+                                    this.changeGridPane();                            
+
                                 } else {
-                                    nextPlayerNumber = currentPlayerNumber + 1;
-                                }                          
-
-                                // le joueur peut retourner 2 cartes maximum
-                                if (this.nbCardsUp < 2) { // ---------TODO : utiliser cardsUpList.length à la place de nbCardsUp----------------
-                                    this.nbCardsUp++;
-                                //if (this.firstCardUp = false) {
-                                  //  this.firstCardUp = true; 
-                                    
-                                    card.switchIsUp();
-                                    
-                                    // on ajoute la carte retournée à la liste
-                                    this.cardsUpList.add(card);
-                                  
-                                } else { // --------TODO : gérer le cas où un seul joueur------------                               
-                                    this.currentPlayer.switchIsPlaying();
-                                   
-                                    //card.switchIsUp();
-                                    
-                                    Card upCard1 = this.cardsUpList.get(0);
-                                    Card upCard2 = this.cardsUpList.get(1);
-                                    //Card upCard2 = card;
-                                    
-                                    // on remet à zéro la liste de cartes retournées
-                                    this.cardsUpList.clear();
-                                    this.nbCardsUp = 0;
-                                    //this.firstCardUp = false;
-                                            
-                                    // si les 2 cartes retournées sont les mêmes
-                                    if (upCard1.getNumber() == upCard2.getNumber()) {                                                              
-                                        // le joueur gagne 1 point
-                                        this.currentPlayer.getPoint();
-                                        ((Label) this.memoryPane.getTabPlayersBox()[currentPlayerNumber].getChildren().get(2)).setText(this.currentPlayer.getScoreToString()); // il faut forcer le type !
-
-                                        // on met à jour le joueur avec le score le plus bas
-                                        
-                                        
-                                        // les cartes ne sont plus "en jeu"
-                                        this.nbPairsInGame--;
-                                        upCard1.removeFromGame();
-                                        upCard2.removeFromGame();
-                                        
-                                        this.gameGrid.removeCardOfGrid(upCard1);
-                                        this.gameGrid.removeCardOfGrid(upCard2);
-                                        
-                                        // on change l'affichage
-                                        this.changeGridPane();                            
-                                        
-                                    } else {
-                                        // les cartes sont remises face cachée  
-                                        upCard1.switchIsUp();                              
-                                        upCard2.switchIsUp();
-                                    }
-
-                                    // on vérifie que le jeu n'est pas fini
-                                    if (this.nbPairsInGame != 0) {
-                                        
-                                         // on doit cliquer sur le bouton pour passer au joueur suivant
-                                        ((Label) this.memoryPane.getInfoLabel()).setText("Votre tour est terminé : cliquez pour changer de joueur"); 
-                                       
-                                    } else {
-                                        Player winner = this.playersList.get(0);
-                                        int bestScore = 0;
-                                        int nbPlayers = this.playersList.size();
-                                        
-                                        for (int i = 0; i < nbPlayers; i++) {
-                                          
-                                            Player player = this.playersList.get(i);
-                                            System.out.println("score "+player.getScore());
-                                            if (player.getScore() > bestScore) {
-                                                bestScore = player.getScore();
-                                                winner = player;
-                                            }
-                                        }
-                                        
-                                        // gagnant = joueur qui a le score le plus grand
-                                        ((Label) this.memoryPane.getInfoLabel()).setText("La partie est terminée : " + winner.getName() + " a gagné !");
-                                        
-                                        this.memoryPane.setBottom(this.memoryPane.getAgainBox());
-                                        //---------------- todo :possibilité de rejouer ----------------------------------
-                                    }
+                                    // les cartes sont remises face cachée  
+                                    upCard1.switchIsUp();                              
+                                    upCard2.switchIsUp();
                                 }
-                            }  
-                        }
+
+                                // on vérifie que le jeu n'est pas fini
+                                if (this.nbPairsInGame != 0) {
+
+                                     // on doit cliquer sur le bouton pour passer au joueur suivant
+                                    ((Label) this.memoryPane.getInfoBox().getChildren().get(0)).setText("Votre tour est terminé : cliquez pour changer de joueur"); 
+
+                                } else {
+                                    Player winner = this.playersList.get(0);
+                                    int bestScore = 0;
+                                    int nbPlayers = this.playersList.size();
+
+                                    for (int i = 0; i < nbPlayers; i++) {
+                                        Player player = this.playersList.get(i);
+                                        if (player.getScore() > bestScore) {
+                                            bestScore = player.getScore();
+                                            winner = player;
+                                        }
+                                    }
+
+                                    // gagnant = joueur qui a le score le plus grand
+                                    ((Label) this.memoryPane.getInfoBox().getChildren().get(0)).setText("La partie est terminée : " + winner.getName() + " a gagné !");
+
+                                    this.memoryPane.setBottom(this.memoryPane.getAgainBox());
+                                    //---------------- todo :possibilité de rejouer ----------------------------------
+                                }
+                            }
+                        }                     
                     });
                 }          
             }
@@ -253,7 +244,7 @@ public class Game {
     public void changeGridPane() {
         GridPane gridPane = (GridPane) this.memoryPane.getMemoryGridPane();
         
-// on vide la grille d'affichage
+        // on vide la grille d'affichage
         gridPane.getChildren().clear();
         
         // on la recréé
@@ -277,8 +268,7 @@ public class Game {
     }
     
     public void resetGame() {
-        int nbPlayers = this.playersList.size();
-                                        
+        int nbPlayers = this.playersList.size();                          
         for (int i = 0; i < nbPlayers; i++) {
             Player player = this.playersList.get(i);
             player.resetScore();
@@ -290,6 +280,16 @@ public class Game {
         } 
     }
     
-    
+    public void updateLowerScorePlayer() {
+        int nbPlayers = this.playersList.size();
+        int lowerScore = this.lowerScorePlayer.getScore();
+            
+        for (int i = 0; i < nbPlayers; i++) {
+            int playerScore = this.playersList.get(i).getScore();
+            if (playerScore < lowerScore) {
+                this.lowerScorePlayer = this.playersList.get(i);
+            } 
+        }  
+    }
    
 }
