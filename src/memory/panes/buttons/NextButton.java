@@ -7,11 +7,8 @@ package memory.panes.buttons;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import memory.game.Game;
-import memory.game.Player;
-import memory.panes.boxes.PlayerBox;
-import memory.panes.boxes.PlayersBox;
+;
 
 /**
  *
@@ -24,8 +21,7 @@ public class NextButton extends Button {
         this.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                game.resetTurn();
-                game.changePlayer();
+                game.resetTurn();   
             }
         });
     }

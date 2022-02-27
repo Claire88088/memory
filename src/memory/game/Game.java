@@ -7,7 +7,6 @@ package memory.game;
 
 import java.util.ArrayList;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
@@ -28,12 +27,11 @@ public class Game {
    
     private int nbPairsInGame;
     private int nbPlayers;
-    private int nbCardsUp;
     private ArrayList<Card> cardsUpList;
     private int nbPairsCards; 
     
     private boolean changingCards;
-    private int nbCardsChosen;
+    private ArrayList<Card> cardsChosenList;
     private boolean isChangeBtnShown;
     
     
@@ -49,20 +47,18 @@ public class Game {
         
         // on créé la grille de jeu
         this.gameGrid = new Grid(nbPairsCards);
-        // les cartes sont mises en place aléatoirement
-        this.gameGrid.shuffle();
+        this.gameGrid.shuffle(); // les cartes sont mises en place aléatoirement
         
         this.nbPairsCards = nbPairsCards;
         
         // variables du jeu "normal"
         this.nbPairsInGame = nbPairsCards;
         this.nbPlayers = this.playersList.size();
-//        this.nbCardsUp = 0;  // nb de fois où une carte a été retournée (max : 2 fois)
         this.cardsUpList = new ArrayList();
         
         // variables de l'échange de cartes
         this.changingCards = false;
-   //     this.nbCardsChosen = 0;
+        this.cardsChosenList = new ArrayList();
         
         // on remet à zéro le jeu
         this.resetGame();
@@ -87,38 +83,110 @@ public class Game {
                                 this.changeCards();
                             }
                         } else {
-                        
-                            // si le joueur n'a pas encore retourné de carte
-                            if (!this.currentPlayer.isOneCardUp()) {
-                                this.returnCard(card); // il retourne la carte
-
-                            } else {
-                                if (card.isUp()) { // si la carte a déjà été retournée
-                                    this.memoryPane.changeInfoLabel("Cette carte est déjà retournée : choisissez-en une autre !");     
-                                } else {
+                            // on enlève le choix d'échanger des cartes
+                            this.memoryPane.removeChangeBtn();
+                            
+                            // si le joueur peut jouer (n'a pas retourné 2 cartes)
+                            if (this.currentPlayer.getNbCardsUp() < 2) {
+                                // si le joueur n'a pas encore retourné de carte
+                                if (this.currentPlayer.getNbCardsUp() == 0) {
                                     this.returnCard(card);
-                                    this.scoreCalculation();
 
-                                    // si on joue à plusieurs
-                                    if (this.playersList.size() > 1) { 
-                                        // on doit cliquer sur le bouton pour passer au joueur suivant
-                                        this.memoryPane.changeInfoLabel("Votre tour est terminé : cliquez pour changer de joueur"); 
+                                } else {
+                                    if (card.isUp()) { // si la carte a déjà été retournée
+                                        this.memoryPane.changeInfoLabel("Cette carte est déjà retournée : choisissez-en une autre !");     
                                     } else {
-                                        this.memoryPane.changeInfoLabel("Votre tour est terminé : cliquez pour continuer"); 
-                                    }       
+                                        this.returnCard(card);
+                                        this.scoreCalculation();
+
+                                        // si on joue à plusieurs
+                                        if (this.playersList.size() > 1) { 
+                                            // on doit cliquer sur le bouton pour passer au joueur suivant
+                                            this.memoryPane.changeInfoLabel("Votre tour est terminé : cliquez pour changer de joueur"); 
+                                        } else {
+                                            this.memoryPane.changeInfoLabel("Votre tour est terminé : cliquez pour continuer"); 
+                                        }       
+                                    }
                                 }
                             }
+                            
                         }
                     });                 
                 }          
             }
         }
     }
+    
+    public void resetGame() {
+        int nbPlayers = this.playersList.size();                          
+        for (int i = 0; i < nbPlayers; i++) {
+            Player player = this.playersList.get(i);
+            player.resetScore();
+        } 
+    }
+    
+    public void chooseCard(Card card) {
+        card.switchIsChosen();
+        this.cardsChosenList.add(card);
+                
+        if (!this.currentPlayer.isOneCardChosen()) {
+            this.memoryPane.changeInfoLabel("Choisissez une seconde carte !");       
+        }
+        
+        this.currentPlayer.switchOneCardChosen();
+    }
+    
+     public void changeCards() {
+        Card chosenCard1 = this.cardsChosenList.get(0);
+        Card chosenCard2 = this.cardsChosenList.get(1);
+
+        // on échange les positions des 2 cartes
+        this.gameGrid.swap(chosenCard1.getPosition(), chosenCard2.getPosition());
+
+        // on remet à zéro
+        this.cardsChosenList.clear();
+        this.changingCards = false;
+        this.memoryPane.removeChangeBtn();
+        
+        chosenCard1.switchIsChosen();
+        chosenCard2.switchIsChosen();
+        
+        this.memoryPane.changeInfoLabel("Les cartes ont été échangées : c'est le tour de " + this.getCurrentPlayer().getName());  
+
+        // on change l'affichage de la grille
+        this.changeGridPane();   
+    }
+     
+    public void changeGridPane() {
+        GridPane gridPane = (GridPane) this.memoryPane.getMemoryGridPane();
+        
+        // on vide la grille d'affichage
+        gridPane.getChildren().clear();
+        
+        // on la recréé
+        // la première ligne a une hauteur imposée et la première colonne a une largeur imposée
+        RowConstraints row1 = new RowConstraints(100);
+        ColumnConstraints col1 = new ColumnConstraints(50);
+
+        gridPane.setPadding(new Insets(20));
+        gridPane.setHgap(25);
+        gridPane.setVgap(15);  
+        gridPane.getRowConstraints().add(row1);
+        gridPane.getColumnConstraints().add(col1);
+
+        for (int gridRow = 0; gridRow < this.gameGrid.getNbRows(); gridRow++){
+            for (int gridCol = 0; gridCol < gameGrid.getNbCols(); gridCol++) {
+                if (this.gameGrid.getCardsGrid()[gridRow][gridCol] != null) {
+                    gridPane.add(this.gameGrid.getCardsGrid()[gridRow][gridCol], gridCol, gridRow); 
+                }
+            }
+        }
+    } 
         
     public void returnCard(Card card) {
         card.switchIsUp();
         this.cardsUpList.add(card); // on ajoute la carte retournée à la liste
-        this.currentPlayer.switchOneCardUp(); 
+        this.currentPlayer.addNbCardsUp();
     }
 
     public void scoreCalculation() {
@@ -135,21 +203,31 @@ public class Game {
         } 
     }
     
+    public void updateLowerScorePlayer() {
+        int nbPlayers = this.playersList.size();
+        int lowerScore = this.lowerScorePlayer.getScore();
+            
+        for (int i = 0; i < nbPlayers; i++) {
+            int playerScore = this.playersList.get(i).getScore();
+            if (playerScore < lowerScore) {
+                this.lowerScorePlayer = this.playersList.get(i);
+            } 
+        }  
+    }
+    
     public void resetTurn() {
         Card upCard1 = this.cardsUpList.get(0);
         Card upCard2 = this.cardsUpList.get(1);
         
         // on remet à zéro la liste de cartes retournées
         this.cardsUpList.clear();
+        this.currentPlayer.resetNbCardsUp();
         
         // si les 2 cartes retournées sont les mêmes
         if (upCard1.getNumber() == upCard2.getNumber()) {
             // les cartes ne sont plus "en jeu"
             this.nbPairsInGame--;
-            
-            upCard1.removeFromGame();
-            upCard2.removeFromGame();
-
+          
             this.gameGrid.removeCardOfGrid(upCard1);
             this.gameGrid.removeCardOfGrid(upCard2);
             
@@ -163,23 +241,26 @@ public class Game {
             upCard2.switchIsUp();
         }
         
-        // si la partie est finie
-        if (this.nbPairsInGame == 0) {
+        // si la partie n'est pas finie
+        if (this.nbPairsInGame != 0) {
+            if (this.nbPlayers > 1) { 
+                this.changePlayer();
+            } else {
+                this.memoryPane.changeInfoLabel(this.currentPlayer.getName() + " : vous pouvez continuer");
+            }
+        } else {
             Player winner = this.winnerCalculation();
             this.memoryPane.changeInfoLabel("La partie est terminée : " + winner.getName() + " a gagné !");
             // ajout du bouton pour rejouer
             this.memoryPane.addAgainBtn();
-        }      
+        }     
     }
         
     public void changePlayer() {
         // on enlève bouton "change" si présent
         this.memoryPane.removeChangeBtn();
-        
-        // le joueur courant arrête de jouer et l'affichage change 
+
         int currentPlayerNumber = this.currentPlayer.getNumber();
-    //    this.currentPlayer.setIsPlaying(false);
-        
         int nextPlayerNumber;
 
         if (currentPlayerNumber == (nbPlayers-1)) {   
@@ -188,10 +269,8 @@ public class Game {
             nextPlayerNumber = currentPlayerNumber + 1;
         }               
         
-         // le joueur suivant devient le joueur courant et commence à jouer
+         // le joueur suivant devient le joueur courant
         Player nextPlayer = this.playersList.get(nextPlayerNumber);
-      //  nextPlayer.setIsPlaying(true);      // ---to do : utile ??-----------
-                
         this.setCurrentPlayer(nextPlayer);
         
         // gestion du bouton "Echanger 2 cartes"
@@ -226,94 +305,6 @@ public class Game {
         // l'affichage change
         this.memoryPane.changeInfoLabel("Choisissez une première carte !");
     }
-    
-    public void chooseCard(Card card) {
-        System.out.println("dans choosecard");
-        card.switchIsChosen();
-        this.cardsUpList.add(card);
-                
-        if (!this.currentPlayer.isOneCardChosen()) {
-            this.memoryPane.changeInfoLabel("Choisissez une seconde carte !");       
-        }
-        
-        this.currentPlayer.switchOneCardChosen();
-    }
-    
-    public void changeCards() {
-        System.out.println("dans changeCard");
-        Card chosenCard1 = this.cardsUpList.get(0);
-        Card chosenCard2 = this.cardsUpList.get(1);
-
-        // on échange les positions des 2 cartes
-        this.gameGrid.swap(chosenCard1.getPosition(), chosenCard2.getPosition());
-
-        // on remet à zéro
-        this.cardsUpList.clear();
-        this.changingCards = false;
-        this.memoryPane.removeChangeBtn();
-        
-        chosenCard1.switchIsChosen();
-        chosenCard2.switchIsChosen();
-        
-        this.memoryPane.changeInfoLabel("Les cartes ont été échangées : c'est le tour de " + this.getCurrentPlayer().getName());  
-
-        // on change l'affichage de la grille
-        this.changeGridPane();   
-    }
-    
-    
-    public void changeGridPane() {
-        GridPane gridPane = (GridPane) this.memoryPane.getMemoryGridPane();
-        
-        // on vide la grille d'affichage
-        gridPane.getChildren().clear();
-        
-        // on la recréé
-        // la première ligne a une hauteur imposée et la première colonne a une largeur imposée
-        RowConstraints row1 = new RowConstraints(100);
-        ColumnConstraints col1 = new ColumnConstraints(50);
-
-        gridPane.setPadding(new Insets(20));
-        gridPane.setHgap(25);
-        gridPane.setVgap(15);  
-        gridPane.getRowConstraints().add(row1);
-        gridPane.getColumnConstraints().add(col1);
-
-        for (int gridRow = 0; gridRow < this.gameGrid.getNbRows(); gridRow++){
-            for (int gridCol = 0; gridCol < gameGrid.getNbCols(); gridCol++) {
-                if (this.gameGrid.getCardsGrid()[gridRow][gridCol] != null) {
-                    gridPane.add(this.gameGrid.getCardsGrid()[gridRow][gridCol], gridCol, gridRow); 
-                }
-            }
-        }
-    }
-    
-    public void resetGame() {
-        int nbPlayers = this.playersList.size();                          
-        for (int i = 0; i < nbPlayers; i++) {
-            Player player = this.playersList.get(i);
-            player.resetScore();
-        /*    if (player == this.currentPlayer) {
-                player.setIsPlaying(Boolean.TRUE);
-            } else {
-                player.setIsPlaying(Boolean.FALSE);
-            }*/
-        } 
-    }
-    
-    public void updateLowerScorePlayer() {
-        int nbPlayers = this.playersList.size();
-        int lowerScore = this.lowerScorePlayer.getScore();
-            
-        for (int i = 0; i < nbPlayers; i++) {
-            int playerScore = this.playersList.get(i).getScore();
-            if (playerScore < lowerScore) {
-                this.lowerScorePlayer = this.playersList.get(i);
-            } 
-        }  
-    }
-
-    
     
     public ArrayList<Player> getPlayersList() {
         return playersList;

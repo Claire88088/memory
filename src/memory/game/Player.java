@@ -14,23 +14,17 @@ public class Player {
     private int number;
     private String name;
     private int score;
-  //  private boolean isPlaying; // ---TODO : utile ??-----------
-    private boolean oneCardUp; // a déjà retourné 1 carte
+    private int nbCardsUp;
     private boolean oneCardChosen;
 
     private static int nbPlayers = 0;
     
     public Player(String name) {
-       /* if (nbPlayers == 0) {
-            this.isPlaying = true;
-        }
-        else {
-            this.isPlaying = false;
-        }*/
+        this.nbCardsUp = 0;
         this.number = nbPlayers;
         this.name = name;
         this.score = 0;
-        this.oneCardUp = false;
+      
         nbPlayers ++;
     }
 
@@ -57,19 +51,7 @@ public class Player {
     public static int getNbPlayers() {
         return nbPlayers;
     }
-/*    
-    public boolean isPlaying() {
-        return this.isPlaying;
-    }
-    
-    public void switchIsPlaying() {
-        this.isPlaying = !this.isPlaying;
-    }
-    
-    public void setIsPlaying(Boolean bool) {
-        this.isPlaying = bool;
-    }
-*/
+
     public int getNumber() {
         return number;
     }
@@ -78,18 +60,6 @@ public class Player {
         this.number = number;
     } 
 
-    public boolean isOneCardUp() {
-        return oneCardUp;
-    }
-
-    public void switchOneCardUp() {
-        if (this.oneCardUp) {
-            this.oneCardUp = false;
-        } else {
-            this.oneCardUp = true;
-        }
-    }
-    
      public boolean isOneCardChosen() {
         return oneCardChosen;
     }
@@ -100,5 +70,21 @@ public class Player {
         } else {
             this.oneCardChosen = true;
         }
+    }
+
+    public int getNbCardsUp() {
+        return nbCardsUp;
+    }
+
+    public void setNbCardsUp(int nbCardsUp) {
+        this.nbCardsUp = nbCardsUp;
+    }
+    
+    public void addNbCardsUp() {
+        this.nbCardsUp ++;
+    }
+    
+    public void resetNbCardsUp() {
+        this.nbCardsUp = 0;
     }
 }

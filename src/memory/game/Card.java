@@ -20,19 +20,15 @@ public class Card extends Label {
    
     private int number;
     private boolean isUp;
-    private boolean isFind;
     private Position position;
     private boolean isChosen;
-    private ImageView icon;
-    
-    private ImageView backIcon;
-    
+    private ImageView icon;   
+    private final ImageView backIcon;
     
     public Card(int number, Position position) {
         this.number = number;
         this.position = position;
         this.isUp = false;
-        this.isFind = false;
         this.isChosen = false;
         
         this.backIcon = createImageIcon("../icons/icons8-cerclé-m-48.png");
@@ -77,14 +73,6 @@ public class Card extends Label {
         }   
         
     }
-    /*
-    public Card(int number) {
-       this(number, null);
-    }
-    
-    public Card() {
-        this(1, null);
-    }*/
 
     public int getNumber() {
         return this.number;
@@ -116,18 +104,6 @@ public class Card extends Label {
         this.position = position;
     }
 
-    public void removeFromGame() {
-        this.isFind = true;
-    }
-    
-    public boolean isFind() {
-        return isFind;
-    }
-
-    public void setIsFind(boolean isFind) {
-        this.isFind = isFind;
-    }  
-
     public void switchIsChosen() {
         if (this.isChosen) {
             this.isChosen = false;
@@ -138,7 +114,7 @@ public class Card extends Label {
         }
     }
     
-    protected ImageView createImageIcon(String path) {   
+    private ImageView createImageIcon(String path) {   
         Image image = new Image(getClass().getResource(path).toExternalForm());
         return new ImageView(image);  
     }

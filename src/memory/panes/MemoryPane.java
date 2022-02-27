@@ -46,7 +46,6 @@ public class MemoryPane extends BorderPane {
     private QuitButton quitBtn;
     private AgainButton againBtn;
     private ChangeButton changeBtn;
-    private boolean changeBtnShown;
             
     public MemoryPane(Game game) { 
         this.setPadding(new Insets(20, 20, 20, 20)); 
@@ -62,7 +61,6 @@ public class MemoryPane extends BorderPane {
         this.quitBtn = new QuitButton("Quitter");
         this.againBtn = new AgainButton("Rejouer", this.game.getPlayersList(), this.game.getNbPairsCards());
         this.changeBtn = new ChangeButton("Echanger 2 cartes", this.game);
-        this.changeBtnShown = false;
         
         // création des "boxes"
         this.infoBox = new InfoBox(this.game);  
@@ -73,6 +71,8 @@ public class MemoryPane extends BorderPane {
         this.playersBox = new PlayersBox();
         this.addPlayerBox(nbPlayers);
         
+        // par défaut : la box "boutons" ne contient que les boutons "next" et "quit"
+        // les boutons "change" et "again" ne s'affichent qu'en fonction du jeu
         this.btnsBox = new BtnsBox(); 
         this.btnsBox.getChildren().addAll(this.nextBtn, this.quitBtn);  
         
