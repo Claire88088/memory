@@ -5,6 +5,7 @@
  */
 package memory;
 
+import memory.panes.InfoGridPane;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
